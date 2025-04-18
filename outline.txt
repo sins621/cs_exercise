@@ -1,0 +1,37 @@
+Instructions
+You have to write an application to submit your CV and the code you are about to write to a REST API as a Zip file. Before you can do this, you first need to authenticate yourself against another REST API to get the URL where you need to submit your CV. Problem is you forgot the password, or at least you forgot how to spell the password.
+
+You know the password is "password", or was it "Password", or even "P@55w0rd"… you just can’t remember. Sometimes you replace the ‘a’ with a ‘@’, your ‘s’ with a ‘5’ and your ‘o’ with a ‘0’, but not always. "Not a problem…", you think to yourself, because you will also write a bit of code to generate a dictionary and launch an attack on the WEB API until you are able to guess the correct password. If your plan works, you will get the URL of the REST API where you need to submit your CV, and you will be well on your way to getting your dream job.
+
+Write a console application in C#.
+Generate a dictionary file called “dict.txt” containing all the permutations of the word “password” where any of the characters can be either uppercase, lowercase, or the characters a, s, and o can also be replaced with the characters @, 5, and 0.
+Using your dictionary file, launch an attack on http://recruitment.warpdevelopment.co.za/api/authenticate to find the correct password (the username is John). The API call uses the “Basic Authentication” scheme. A successful authentication will return a unique URL in the response body which you need to use to upload your CV.
+Generate a Zip file containing a copy of your CV in PDF format, a copy of this program (only the .cs file), and your “dict.txt” file. Encode your bytes as a Base64 encoded string and submit it as JSON with a POST to the URL you received. The Zip file must be less than 5MB in size.
+Example Requests and Responses
+GET Request: http://recruitment.warpdevelopment.co.za/api/authenticate
+
+Authorization: Basic QWxhZGRpbjpPcGVuU2VzYW1l
+
+Response 1: HTTP/1.1 401 Not Authorized
+
+Response 2: HTTP/1.1 200 OK
+
+Example URL: http://recruitment.warpdevelopment.co.za/api/upload/4324scs2345fdsdf14265t354wef25432451455tfacagfwrgh/
+
+POST Request:
+
+POST / HTTP/1.1
+
+POST Body:
+
+{ "{ Data:"b8hwqb8hwqEtt_WH0O7KJtNb-9tFWJgZvFREtt_9tFWJgZvFRb-9tFWJgZvFR===",
+                 "Name": "Your Name", "Surname": "Your Surname", "Email": "email@domain.com" }" }
+Response: HTTP/1.1 200 OK
+
+Message: “Success”
+
+Prerequisites
+The only external namespaces/nuget packages you are allowed to use is the Newtonsoft.Json package.
+Clean, well-documented, and elegant code will be rewarded with extra marks.
+The final zip that is uploaded should include the code used to upload it as well as the code used to generate the password dictionary.
+Don’t use Google or Stack Overflow! The solution should be original as the intent is to measure your problem-solving ability, not your ability to find existing solutions.
