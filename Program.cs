@@ -24,6 +24,7 @@ Bradly.
 */
 
 
+using System.Net;
 using System.Net.Http.Headers;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -133,6 +134,8 @@ to accommodate multiple keywords and I wanted to do the same.
 
 List<string> permutations = new List<string>() { "" };
 
+Console.WriteLine("Generating Passwords");
+
 foreach (char character in password)
 {
     List<string> temp = new List<string>();
@@ -194,6 +197,8 @@ foreach (char character in password)
     */
 }
 
+Console.WriteLine($"{permutations.Count} Passwords Generated.");
+
 /*
 Using the example of "as5" as input:
 Step 1:
@@ -220,6 +225,7 @@ Step 3:
 Final result = ["as5", "aS5", "a55", "As5", "AS5", "A55", "@s5", "@S5", "@55"]
 */
 
+Console.WriteLine("Writing Passwords to 'dict.txt'");
 File.WriteAllLines("dict.txt", permutations);
 
 /*
@@ -227,14 +233,16 @@ I'm not wrapping this in a try catch as an error to write the file should throw
 an exception in the context of this program.
 */
 
+Console.WriteLine("Reading Passwords from 'dict.txt'");
 string[] passwords = File.ReadAllLines("dict.txt");
 
 HttpClient client = new HttpClient();
 Env.Load();
 string endpoint = Env.GetString("URL");
-Console.WriteLine(endpoint);
 const string USERNAME = "John";
+string submissionUrl = null;
 
+Console.WriteLine("Attempting to Fetch Submission URL");
 foreach (string word in passwords)
 {
     string PASSWORD = word;
@@ -242,22 +250,61 @@ foreach (string word in passwords)
     string base64Credentials = Convert.ToBase64String(Encoding.ASCII.GetBytes(credentials));
     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", base64Credentials);
 
-    HttpResponseMessage response = await client.GetAsync(endpoint);
+    bool canAttemptNextPassword = false;
 
-    Console.WriteLine($"HTTP Status Code: {response.StatusCode}");
-
-    if (response.IsSuccessStatusCode)
+    while (!canAttemptNextPassword)
     {
-        Console.WriteLine(word);
-        string responseBody = await response.Content.ReadAsStringAsync();
-        Console.WriteLine($"Authentication successful (status code {response.StatusCode}). Response body:");
-        Console.WriteLine(responseBody);
-        break;
-        // You might want to process the response body to extract tokens or other information
+        try
+        {
+            Console.WriteLine($"Trying password: {PASSWORD}");
+            HttpResponseMessage response = await client.GetAsync(endpoint);
+
+            if (response.IsSuccessStatusCode)
+            {
+                submissionUrl = await response.Content.ReadAsStringAsync();
+                break;
+            }
+            else if (response.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                Console.WriteLine("Unauthorized — wrong password.");
+                canAttemptNextPassword = true;
+            }
+            else
+            {
+                Console.WriteLine($"Non-auth error: {response.StatusCode}");
+                await Task.Delay(1000);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Request failed for {PASSWORD}. Exception: {ex.Message}");
+            await Task.Delay(1000);
+        }
     }
-    else
+
+    if (submissionUrl != null)
     {
-        Console.WriteLine($"Authentication failed with status code: {response.StatusCode}");
-        // You might want to log more details about the error
+        break;
     }
 }
+
+/*
+To fetch the submission URL we'll make a GET request with each password until either
+we've found the correct password or we've tried every password. Using a while loop we'll
+ensure that each password is tested. We may only exit the while loop if a. the status 
+code indicates the request was successful in which case we break out from the while loop
+and then break out from the for loop or b. the status code indicates that our request is 
+not authorized and so we move on to the next password. Under any other circumstance such
+as a different status code or exception raised by the Get request we stay in the while 
+loop and reattempt the request. Delay's added as a buffer in the event of requests failing
+due to network related issues.
+*/
+
+if (submissionUrl == null)
+{
+    Console.WriteLine("Unable to Fetch Submission URL.");
+    Environment.Exit(1);
+}
+
+Console.WriteLine("Success!");
+Console.WriteLine($"Submission URL is {submissionUrl}");
