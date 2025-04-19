@@ -95,7 +95,7 @@ foreach (char character in password)
 
 */
 
-string password = "password";
+string password = "as5";
 
 Dictionary<char, List<char>> leetMap = new Dictionary<char, List<char>>()
 {
@@ -126,8 +126,17 @@ List<string> permutations = new List<string>() { "" };
 
 foreach (char character in password)
 {
-    List<string> newPermutations = new List<string>();
+    List<string> temp = new List<string>();
     List<char> options = new List<char>();
+
+    /*
+    Again we have a permuations list and temporary list but this time I've
+    added a list to store the potential variations of a character. This time
+    around a single character can have many variations such as a can have 
+    ["a", "A", "@"] with the ability to scale to more options later and so 
+    in order to concatenate possibilities to our temporary list we will need
+    to iterate over each variation.
+    */
 
     if (!char.IsLetter(character))
     {
@@ -143,14 +152,58 @@ foreach (char character in password)
         }
     }
 
-    foreach (string letter in permutations)
+    /*
+    First we make sure that the character is indeed a letter. The first time I
+    thought I'd solved this algorithm I tested "15" and the resulting list
+    was ["15", "15", "15", "15"] because it is possible to perform char.ToLower()
+    on "numbers" in this instance because a number is still a valid character.
+    The resulting list of options was ["1", "1", "5", "5"].
+    While this is probably pretty obvious to most I had forgotten this detail as
+    I haven't worked with this data type since I was learning C++ last year and
+    back in JJ's High School Java Class over a decade ago (Sorry JJ, I have failed you).
+    */
+
+    foreach (string permutation in permutations)
     {
         foreach (char option in options)
         {
-            newPermutations.Add(letter + option);
+            temp.Add(permutation + option);
         }
     }
-    permutations = newPermutations;
+    permutations = temp;
+
+    /*
+    Finally we loop over each permutation in the list with an inner loop which
+    loops over each option in the options list. Inside the inner loop we add a
+    new permutation to our temporary list by concatenating the permutation with
+    each option for the current letter in the password. We then update the permutations
+    list to be used for the following iteration for the following letter.
+    */
+}
+
+/*
+Using the example of "as5" as input:
+Step 1:
+"" + "a" -> "a"
+"" + "A" -> "A"
+"" + "@" -> "@"
+Result = ["a", "A", "@"]
+Step 2:
+"a" + "s" -> "as"
+"a" + "S" -> "aS"
+"a" + "5" -> "a5"
+"A" + "s" -> "As"
+"A" + "S" -> "AS"
+"A" + "5" -> "A5"
+"@" + "s" -> "@s"
+"@" + "S" -> "@S"
+"@" + "5" -> "@5"
+Result = [
+*/
+
+foreach (string permutation in permutations)
+{
+    Console.WriteLine(permutation);
 }
 
 //string filePath = Path.Combine(Directory.GetCurrentDirectory(), "dict.txt");
