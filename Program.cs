@@ -250,7 +250,7 @@ foreach (string word in passwords)
     {
         Console.WriteLine(word);
         string responseBody = await response.Content.ReadAsStringAsync();
-        Console.WriteLine("Authentication successful (status code {response.StatusCode}). Response body:");
+        Console.WriteLine($"Authentication successful (status code {response.StatusCode}). Response body:");
         Console.WriteLine(responseBody);
         break;
         // You might want to process the response body to extract tokens or other information
@@ -260,12 +260,4 @@ foreach (string word in passwords)
         Console.WriteLine($"Authentication failed with status code: {response.StatusCode}");
         // You might want to log more details about the error
     }
-
-    if (response.IsSuccessStatusCode)
-    {
-        string responseBody = await response.Content.ReadAsStringAsync();
-        Console.WriteLine(responseBody);
-
-    }
-
 }
