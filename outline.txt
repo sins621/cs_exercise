@@ -5,7 +5,7 @@
    - Write all generated passwords to "dict.txt", one per line.
 
 2. Password Attack on Authentication API:
-   - Target URL: http://recruitment.warpdevelopment.co.za/api/authenticate
+   - Target URL: 
    - Username: "John"
    - Read passwords from "dict.txt".
    - For each password:

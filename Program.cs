@@ -24,7 +24,16 @@ Bradly.
 */
 
 
+using System.Net.Http.Headers;
 using System.Runtime.CompilerServices;
+using System.Text;
+using DotNetEnv;
+
+/*
+I'm aware the description mentions to not use any packages however I wanted
+to keep your company's endpoints inside an env file. It can be installed with
+dotnet add package DotNetEnv
+*/
 
 
 /* === 1. Password Generation ===
@@ -95,7 +104,7 @@ foreach (char character in password)
 
 */
 
-string password = "as5";
+string password = "password";
 
 Dictionary<char, List<char>> leetVariations = new Dictionary<char, List<char>>()
 {
@@ -162,8 +171,9 @@ foreach (char character in password)
     I haven't worked with this data type since I was learning C++ last year and
     back in JJ's High School Java Class over a decade ago (Sorry JJ, I have failed you).
 
-    If it is a letter we add the lower and upper case version to the list of options and
-    if the character is in our leet dictionary
+    If it is a letter we add the lower and upper case versions to the list of options and
+    if the character is in our leet dictionary we copy all of the variations of that 
+    character to our options list.
     */
 
     foreach (string permutation in permutations)
@@ -217,22 +227,45 @@ I'm not wrapping this in a try catch as an error to write the file should throw
 an exception in the context of this program.
 */
 
-//string[] linesFromFile = File.ReadAllLines(filePath);
-//List<string> passwords = new List<string>(linesFromFile);
+string[] passwords = File.ReadAllLines("dict.txt");
 
-//HttpClient client = new HttpClient();
+HttpClient client = new HttpClient();
+Env.Load();
+string endpoint = Env.GetString("URL");
+Console.WriteLine(endpoint);
+const string USERNAME = "John";
 
-//foreach (string word in passwords)
-//{
+foreach (string word in passwords)
+{
+    string PASSWORD = word;
+    string credentials = $"{USERNAME}:{PASSWORD}";
+    string base64Credentials = Convert.ToBase64String(Encoding.ASCII.GetBytes(credentials));
+    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", base64Credentials);
 
-//}
+    HttpResponseMessage response = await client.GetAsync(endpoint);
 
-//HttpResponseMessage response = await client.GetAsync("https://jsonplaceholder.typicode.com/todos/1");
+    Console.WriteLine($"HTTP Status Code: {response.StatusCode}");
 
-//if (response.IsSuccessStatusCode)
-//{
-//    string responseBody = await response.Content.ReadAsStringAsync();
-//    Console.WriteLine(responseBody);
+    if (response.IsSuccessStatusCode)
+    {
+        Console.WriteLine(word);
+        string responseBody = await response.Content.ReadAsStringAsync();
+        Console.WriteLine("Authentication successful (status code {response.StatusCode}). Response body:");
+        Console.WriteLine(responseBody);
+        break;
+        // You might want to process the response body to extract tokens or other information
+    }
+    else
+    {
+        Console.WriteLine($"Authentication failed with status code: {response.StatusCode}");
+        // You might want to log more details about the error
+    }
 
-//}
+    if (response.IsSuccessStatusCode)
+    {
+        string responseBody = await response.Content.ReadAsStringAsync();
+        Console.WriteLine(responseBody);
 
+    }
+
+}
