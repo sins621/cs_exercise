@@ -24,6 +24,7 @@ Bradly.
 */
 
 
+using System.IO.Compression;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Runtime.CompilerServices;
@@ -288,6 +289,8 @@ foreach (string word in passwords)
     }
 }
 
+client.Dispose();
+
 /*
 To fetch the submission URL we'll make a GET request with each password until either
 we've found the correct password or we've tried every password. Using a while loop we'll
@@ -306,5 +309,20 @@ if (submissionUrl == null)
     Environment.Exit(1);
 }
 
+Console.WriteLine("Attempting to create Zip Files");
+string[] filesToZip = { "dict.txt", "Program.cs", "bradly_carpenter_cv.pdf" };
+
+FileStream zipToOpen = new FileStream("submission.zip", FileMode.Create);
+ZipArchive archive = new ZipArchive(zipToOpen, ZipArchiveMode.Update);
+
+foreach (string file in filesToZip)
+{
+    archive.CreateEntryFromFile(file, Path.GetFileName(file));
+}
+
+archive.Dispose();
+zipToOpen.Dispose();
+
 Console.WriteLine("Success!");
 Console.WriteLine($"Submission URL is {submissionUrl}");
+

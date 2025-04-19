@@ -9,16 +9,26 @@
 
   <ItemGroup>
     <None Remove=".env" />
+    <None Remove="bradly_carpenter_cv.pdf" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include=".env">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
+    <EmbeddedResource Include="bradly_carpenter_cv.pdf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="DotNetEnv" Version="3.1.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Program.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Compile>
   </ItemGroup>
 
 </Project>
