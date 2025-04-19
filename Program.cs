@@ -97,7 +97,7 @@ foreach (char character in password)
 
 string password = "as5";
 
-Dictionary<char, List<char>> leetMap = new Dictionary<char, List<char>>()
+Dictionary<char, List<char>> leetVariations = new Dictionary<char, List<char>>()
 {
     { 'a', new List<char> { '@' } },
     { 's', new List<char> { '5' } },
@@ -146,9 +146,9 @@ foreach (char character in password)
     {
         options.AddRange([char.ToLower(character), char.ToUpper(character)]);
 
-        if (leetMap.ContainsKey(char.ToLower(character)))
+        if (leetVariations.ContainsKey(char.ToLower(character)))
         {
-            options.AddRange(leetMap[char.ToLower(character)]);
+            options.AddRange(leetVariations[char.ToLower(character)]);
         }
     }
 
@@ -161,6 +161,9 @@ foreach (char character in password)
     While this is probably pretty obvious to most I had forgotten this detail as
     I haven't worked with this data type since I was learning C++ last year and
     back in JJ's High School Java Class over a decade ago (Sorry JJ, I have failed you).
+
+    If it is a letter we add the lower and upper case version to the list of options and
+    if the character is in our leet dictionary
     */
 
     foreach (string permutation in permutations)
@@ -198,16 +201,21 @@ Step 2:
 "@" + "s" -> "@s"
 "@" + "S" -> "@S"
 "@" + "5" -> "@5"
-Result = [
+Result = ["as", "aS", "a5", "As", "AS", "A5", "@s", "@S", "@5"]
+Step 3:
+"as" + "5" -> "as5"
+"aS" + "5" -> "aS5"
+"a5" + "5" -> "a55"
+... and so on
+Final result = ["as5", "aS5", "a55", "As5", "AS5", "A55", "@s5", "@S5", "@55"]
 */
 
-foreach (string permutation in permutations)
-{
-    Console.WriteLine(permutation);
-}
+File.WriteAllLines("dict.txt", permutations);
 
-//string filePath = Path.Combine(Directory.GetCurrentDirectory(), "dict.txt");
-//File.WriteAllLines(filePath, permutations);
+/*
+I'm not wrapping this in a try catch as an error to write the file should throw
+an exception in the context of this program.
+*/
 
 //string[] linesFromFile = File.ReadAllLines(filePath);
 //List<string> passwords = new List<string>(linesFromFile);
