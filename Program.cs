@@ -17,17 +17,15 @@ at present with my limited knowledge of the language that would not be feasible.
 
 To respect the rules of the assessment as well as I can I am limiting my internet
 search queries to "How to create a Dictionary in C#", in other words, mostly syntax
-related queries and not logic related queries. I hope you will understand.
+related queries, boilerplate, and not logic related queries. I hope you will understand.
 
 Thanks again,
 Bradly.
 */
 
-
 using System.IO.Compression;
 using System.Net;
 using System.Net.Http.Headers;
-using System.Runtime.CompilerServices;
 using System.Text;
 using DotNetEnv;
 
@@ -37,9 +35,7 @@ to keep your company's endpoints inside an env file. It can be installed with
 dotnet add package DotNetEnv
 */
 
-
 /* === 1. Password Generation ===
-
 
 I first attempted to solve the the problem of making case permuations as I
 had an idea for an iterative solution and figured I may find a way to adapt
@@ -238,9 +234,12 @@ Console.WriteLine("Reading Passwords from 'dict.txt'");
 string[] passwords = File.ReadAllLines("dict.txt");
 
 HttpClient client = new HttpClient();
+
 Env.Load();
 string endpoint = Env.GetString("URL");
+
 const string USERNAME = "John";
+
 string submissionUrl = null;
 
 Console.WriteLine("Attempting to Fetch Submission URL");
@@ -258,21 +257,21 @@ foreach (string word in passwords)
         try
         {
             Console.WriteLine($"Trying password: {PASSWORD}");
-            HttpResponseMessage response = await client.GetAsync(endpoint);
+            HttpResponseMessage getResponse = await client.GetAsync(endpoint);
 
-            if (response.IsSuccessStatusCode)
+            if (getResponse.IsSuccessStatusCode)
             {
-                submissionUrl = await response.Content.ReadAsStringAsync();
+                submissionUrl = await getResponse.Content.ReadAsStringAsync();
                 break;
             }
-            else if (response.StatusCode == HttpStatusCode.Unauthorized)
+            else if (getResponse.StatusCode == HttpStatusCode.Unauthorized)
             {
                 Console.WriteLine("Unauthorized — wrong password.");
                 canAttemptNextPassword = true;
             }
             else
             {
-                Console.WriteLine($"Non-auth error: {response.StatusCode}");
+                Console.WriteLine($"Non-auth error: {getResponse.StatusCode}");
                 await Task.Delay(1000);
             }
         }
@@ -289,16 +288,14 @@ foreach (string word in passwords)
     }
 }
 
-client.Dispose();
-
 /*
 To fetch the submission URL we'll make a GET request with each password until either
 we've found the correct password or we've tried every password. Using a while loop we'll
-ensure that each password is tested. We may only exit the while loop if a. the status 
+ensure that each password is tested. We may only exit the while loop if a. the status
 code indicates the request was successful in which case we break out from the while loop
-and then break out from the for loop or b. the status code indicates that our request is 
+and then break out from the for loop or b. the status code indicates that our request is
 not authorized and so we move on to the next password. Under any other circumstance such
-as a different status code or exception raised by the Get request we stay in the while 
+as a different status code or exception raised by the Get request we stay in the while
 loop and reattempt the request. Delay's added as a buffer in the event of requests failing
 due to network related issues.
 */
@@ -309,8 +306,11 @@ if (submissionUrl == null)
     Environment.Exit(1);
 }
 
+Console.WriteLine("Success!");
+Console.WriteLine($"Submission URL is {submissionUrl}");
+
 Console.WriteLine("Attempting to create Zip Files");
-string[] filesToZip = { "dict.txt", "Program.cs", "bradly_carpenter_cv.pdf" };
+string[] filesToZip = ["dict.txt", "Program.cs", "bradly_carpenter_cv.pdf"];
 
 FileStream zipToOpen = new FileStream("submission.zip", FileMode.Create);
 ZipArchive archive = new ZipArchive(zipToOpen, ZipArchiveMode.Update);
@@ -323,6 +323,40 @@ foreach (string file in filesToZip)
 archive.Dispose();
 zipToOpen.Dispose();
 
-Console.WriteLine("Success!");
-Console.WriteLine($"Submission URL is {submissionUrl}");
+Console.WriteLine("Files zipped successfully");
 
+/*
+CreateEntryFromFile will add each file to the archive and it seems that
+if you don't free up the archive object with 'Dispose()' an emtpy zip file
+will be created. Again, an exception should be raised in the event that 
+a file mentioned by name in the string array is not present so I won't wrap
+this part in a try-catch.
+*/
+
+byte[] zipBytes = File.ReadAllBytes("submission.zip");
+
+string base64String = Convert.ToBase64String(zipBytes);
+
+client.DefaultRequestHeaders.Authorization = null;
+
+/*
+Clearing the headers I set earlier in-case it might cause problems
+with the post request
+*/
+
+string jsonPayload = $@"
+{{
+    ""Data"": ""{base64String}"",
+    ""Name"": ""Bradly"",
+    ""Surname"": ""Carpenter"",
+    ""Email"": ""bradlycarpenterza@gmail.com""
+}}";
+
+var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
+
+HttpResponseMessage postResponse = await client.PostAsync(submissionUrl, content);
+
+if (postResponse.IsSuccessStatusCode)
+{
+    Console.WriteLine("Great Success");
+}
